@@ -127,7 +127,7 @@ A second YOLOv5 model detects individual characters inside the cropped plate ima
 
 ### Real-Time Recognition Demo
 
-![Video Demo](result/video_1.gif)
+![Video Demo](result/video.gif)
 
 ## Technologies Used
 
