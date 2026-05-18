@@ -1,0 +1,9 @@
+line_metadata: data/line_crops/line_metadata.csv
+output_dir: outputs/crnn
+batch_size: 32
+epochs: 20
+lr: 0.0003
+num_workers: 0
+image_height: 48
+max_width: 320
+device: auto
