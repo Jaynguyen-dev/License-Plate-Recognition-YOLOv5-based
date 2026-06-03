@@ -1,15 +1,15 @@
 # CS231 – Vietnamese License Plate Recognition Final Project
 
-This project presents a Vietnamese License Plate Recognition (VLPR) system developed for the course **CS231 – Introduction to Computer Vision**. The system automatically detects and recognizes Vietnamese vehicle license plates from images and video streams using deep learning techniques. The project follows a two-stage pipeline: (1) License Plate Detection and (2) Character Detection and Recognition. YOLOv5 is used as the primary object detection framework for both stages. The system supports both one-line and two-line Vietnamese license plates and can perform real-time recognition through webcam input.
+This project presents a Vietnamese License Plate Recognition (VLPR) system developed for the course **CS231 – Introduction to Computer Vision**. The system automatically detects and recognizes Vietnamese vehicle license plates from images and video streams using deep learning techniques. The project implements a multi-stage pipeline, starting with License Plate Detection using YOLOv5. For the Optical Character Recognition stage, two distinct approaches are implemented and explored: (1) bounding-box-based character detection using a second YOLOv5 model, and (2) a sequence-based Optical Character Recognition (OCR) pipeline using a Layout CNN and CRNN. The system supports both one-line and two-line Vietnamese license plates and can perform real-time recognition through webcam input.
 
 ## Features
 
 - Vietnamese license plate detection using YOLOv5
-- Character recognition from detected plates
+- Two approaches for character recognition: YOLOv5 character detection vs. CRNN-based OCR sequence recognition
 - Support for one-line and two-line license plates
 - Real-time webcam inference
 - Image-based inference
-- Training notebooks for custom datasets
+- Training notebooks and scripts for custom datasets
 
 ## Project Structure
 
@@ -70,15 +70,6 @@ python webcam.py
 ```bash
 python lp_image.py -i test_image/3.jpg
 ```
-
-### Notebook Demonstration
-
-Open the notebook below to understand the complete recognition pipeline and model workflow:
-
-```bash
-LP_recognition.ipynb
-```
-
 ## Dataset
 
 This project uses two datasets for the two-stage recognition pipeline.
@@ -90,9 +81,6 @@ https://drive.google.com/file/d/1xchPXf7a1r466ngow_W_9bittRqQEf_T/view?usp=shari
 ### Character Detection Dataset
 
 https://drive.google.com/file/d/1bPux9J0e1mz-_Jssx4XX1-wPGamaS8mI/view?usp=sharing
-
-Special thanks to Mì AI and winter2897 for sharing and contributing parts of the dataset resources.
-
 ## Training
 
 Training notebooks are available in the `training/` directory.
@@ -111,13 +99,33 @@ training/Letter_detection.ipynb
 
 ## Methodology
 
-### Stage 1 – License Plate Detection
+This project implements two distinct approaches for recognizing characters on Vietnamese license plates after the initial plate detection stage.
 
-YOLOv5 is trained to detect Vietnamese license plates from input images. The detected plate region is cropped for the next stage.
+### Stage 1: License Plate Detection (Common)
 
-### Stage 2 – Character Detection and Recognition
+Both approaches begin by using a YOLOv5 object detection model (`LP_detector.pt`) to locate and crop the Vietnamese license plate from the input image or video stream.
 
-A second YOLOv5 model detects individual characters inside the cropped plate image. Characters are sorted based on spatial position and combined to reconstruct the final license plate text.
+### Approach 1: Two-Stage YOLOv5 Object Detection (Heuristic-based Sorting)
+
+This approach treats Character Recognition as an object detection problem followed by heuristic spatial sorting.
+
+1. **Character Detection:** A second YOLOv5 model (`LP_ocr.pt`) trained specifically on alphanumeric classes detects individual characters within the cropped license plate, yielding bounding boxes and class labels.
+2. **Layout Analysis (Linear Regression):** The system calculates the center point of each character's bounding box. It finds the leftmost and rightmost points and computes a linear equation. If any character's center deviates significantly from this line, the plate is classified as a "two-line" format; otherwise, it is a "one-line" format.
+3. **Character Sorting & Reconstruction:**
+   - **One-line plates:** Bounding boxes are simply sorted from left to right based on their x-coordinates.
+   - **Two-line plates:** Characters are split into a top row and a bottom row based on whether their y-coordinate is above or below the mean y-coordinate of all characters. Each row is then sorted from left to right. The final license plate string is formed by concatenating the top row characters, a hyphen (`-`), and the bottom row characters.
+
+### Approach 2: Deep Learning OCR Pipeline (CRNN & CTC)
+
+This approach uses sequence modeling to read the entire license plate text without needing character-level bounding boxes.
+
+1. **Layout Classification (CNN):** The cropped plate image is passed through a custom 4-layer Convolutional Neural Network (`LayoutCNN`) that acts as an image classifier. Utilizing Convolutional layers, Batch Normalization, and Adaptive Average Pooling, it predicts the plate format: "one-line" or "two-line".
+2. **Line Splitting:** If the CNN classifies the plate as "two-line", an image processing algorithm horizontally splits the plate image to isolate the upper character line from the lower character line.
+3. **Sequence Feature Extraction (CNN + BiLSTM):** Each line image is fed into a Convolutional Recurrent Neural Network (`CRNN`). 
+   - The CNN backbone extracts deep spatial feature maps from the image.
+   - These feature maps are reshaped into a sequence and passed into a 2-layer Bidirectional LSTM. The BiLSTM captures the sequential context of the characters from both directions.
+4. **CTC Decoding:** The output logits from the RNN are decoded using Connectionist Temporal Classification (CTC) greedy decoding. This directly translates the unsegmented image sequence into the final predicted text string.
+5. **Post-processing & Validation:** The recognized text from both lines is concatenated. A `PlateValidator` applies format constraints based on a predefined metadata set to autocorrect typical OCR misclassifications (e.g., confusing `8` and `B` or `0` and `D`) according to standard Vietnamese license plate syntax rules.
 
 ## Results
 
@@ -142,12 +150,5 @@ A second YOLOv5 model detects individual characters inside the cropped plate ima
 
 ## Contributors
 
-- Hoàng Nguyễn
-- CS231 Final Project Team
-
-## References
-
-- YOLOv5 – Ultralytics
-- OpenCV Documentation
-- PyTorch Documentation
-- Vietnamese License Plate datasets from community contributors
+- Nguyễn Việt Hoàng - 24520561
+- Đặng Ngọc Trường Chinh - 23520186
