@@ -1,0 +1,10 @@
+metadata: data/metadata.csv
+data_root: archive
+output_dir: outputs/layout
+report: outputs/reports/layout_metrics.csv
+image_size: [192, 96]
+batch_size: 64
+epochs: 10
+lr: 0.001
+num_workers: 0
+device: auto
