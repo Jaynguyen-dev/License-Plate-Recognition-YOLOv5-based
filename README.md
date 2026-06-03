@@ -11,7 +11,7 @@ This project presents a Vietnamese License Plate Recognition (VLPR) system devel
 - Image-based inference
 - Training notebooks and scripts for custom datasets
 
-## Project Structure
+## Project Structure of YOLOv5-based approach
 
 ```bash
 ├── model/                      # Pretrained models
@@ -26,7 +26,7 @@ This project presents a Vietnamese License Plate Recognition (VLPR) system devel
 └── README.md
 ```
 
-## Installation
+## Installation of YOLOv5-based approach
 
 Clone the repository:
 
@@ -57,7 +57,7 @@ Pretrained models are provided in the `model/` directory, including:
 - License plate detection model
 - Character detection model
 
-## Running the Project
+## Running the Project with YOLOv5-based approach
 
 ### Webcam Inference
 
