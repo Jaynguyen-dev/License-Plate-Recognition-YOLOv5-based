@@ -152,3 +152,7 @@ This approach uses sequence modeling to read the entire license plate text witho
 
 - Nguyễn Việt Hoàng - 24520561
 - Đặng Ngọc Trường Chinh - 23520186
+
+## Technical Report
+The complete technical report for this project is available in the `Report` directory.
+
